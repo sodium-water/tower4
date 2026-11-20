@@ -26,6 +26,8 @@ jobs:
 
   build-macos:
     runs-on: macos-latest
+    env:
+      MACOSX_DEPLOYMENT_TARGET: "11.0"
     steps:
       - uses: actions/checkout@v4
       - uses: dtolnay/rust-toolchain@stable
@@ -39,20 +41,7 @@ jobs:
           lipo -create target/aarch64-apple-darwin/release/tower4 target/x86_64-apple-darwin/release/tower4 -output "$APP/Contents/MacOS/tower4"
           chmod +x "$APP/Contents/MacOS/tower4"
           cp -r assets "$APP/Contents/Resources/"
-          cat << 'EOF' > "$APP/Contents/Info.plist"
-          <?xml version="1.0" encoding="UTF-8"?>
-          <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://apple.com">
-          <plist version="1.0"><dict>
-            <key>CFBundleName</key><string>The Night Shift at Tower 4</string>
-            <key>CFBundleDisplayName</key><string>The Night Shift at Tower 4</string>
-            <key>CFBundleExecutable</key><string>tower4</string>
-            <key>CFBundleIdentifier</key><string>com.usfs.tower4</string>
-            <key>CFBundlePackageType</key><string>APPL</string>
-            <key>CFBundleVersion</key><string>1.0.0</string>
-            <key>NSHighResolutionCapable</key><true/>
-            <key>NSMicrophoneUsageDescription</key><string>Proximity and Walkie-Talkie Voice Chat in Co-Op</string>
-          </dict></plist>
-          EOF
+          printf '%s\n' '<?xml version="1.0" encoding="UTF-8"?>' '<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://apple.com">' '<plist version="1.0"><dict>' '<key>CFBundleName</key><string>The Night Shift at Tower 4</string>' '<key>CFBundleDisplayName</key><string>The Night Shift at Tower 4</string>' '<key>CFBundleExecutable</key><string>tower4</string>' '<key>CFBundleIdentifier</key><string>com.usfs.tower4</string>' '<key>CFBundlePackageType</key><string>APPL</string>' '<key>CFBundleVersion</key><string>1.0.0</string>' '<key>NSHighResolutionCapable</key><true/>' '<key>NSMicrophoneUsageDescription</key><string>Proximity and Walkie-Talkie Voice Chat in Co-Op</string>' '</dict></plist>' > "$APP/Contents/Info.plist"
           codesign --force --deep --sign - "$APP"
           ditto -c -k --sequesterRsrc --keepParent "$APP" Tower4-macOS-Universal.zip
       - uses: actions/upload-artifact@v4
@@ -64,7 +53,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - run: sudo apt-get update && sudo apt-get install -y libx11-dev libxi-dev libgl1-mesa-dev libasound2-dev
+      - run: sudo apt-get update && sudo apt-get install -y pkg-config libx11-dev libxi-dev libgl1-mesa-dev libasound2-dev zip
       - uses: dtolnay/rust-toolchain@stable
       - run: cargo build --release
       - run: |
