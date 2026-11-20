@@ -48,7 +48,7 @@ pub fn terrain_y(x: f32, z: f32) -> f32 {
     flat = flat.min(((d_camp - 12.0) / 10.0).clamp(0.0, 1.0));
     (h1 + h2) * flat
 }
-pub fn walkable_y(x: f32, z: f32, outposts: &[(i32, i32); 9]) -> f32 {
+pub fn walkable_y(x: f32, z: f32, _outposts: &[(i32, i32); 9]) -> f32 {
     let mut base = terrain_y(x, z).max(terrain_y(x + 0.25, z + 0.25)).max(terrain_y(x - 0.25, z - 0.25));
     for &(tx, tz) in &TOWERS {
         let t_base = terrain_y(tx, tz);
@@ -76,8 +76,8 @@ pub fn tile_at(x: i32, z: i32, outposts: &[(i32, i32); 9]) -> char {
         if (z == z0 || z == z1) && (x0..=x1).contains(&x) && x != cx { return '#'; }
         if (x - cx).abs() <= 6 && (z - cz).abs() <= 6 { return '.'; }
     }
-    let s = get_world_seed(); let t_off1 = ((hash2(s, 21) - 0.5) * 40.0) as i32; let trail1 = 32 + t_off1 + ((x as f32 * 0.08 + hash2(s, 25) * 6.0).sin() * 14.0) as i32 + ((x - 32) / 2);
-    let t_off2 = ((hash2(s, 31) - 0.5) * 40.0) as i32; let trail2 = 340 + t_off2 - ((x as f32 * 0.07 + hash2(s, 35) * 6.0).cos() * 14.0) as i32 - ((x - 32) / 2);
+    let s = get_world_seed(); let t_off1 = ((hash2(s, 21) - 0.5) * 40.0) as i32; let _trail1 = 32 + t_off1 + ((x as f32 * 0.08 + hash2(s, 25) * 6.0).sin() * 14.0) as i32 + ((x - 32) / 2);
+    let t_off2 = ((hash2(s, 31) - 0.5) * 40.0) as i32; let _trail2 = 340 + t_off2 - ((x as f32 * 0.07 + hash2(s, 35) * 6.0).cos() * 14.0) as i32 - ((x - 32) / 2);
     if trail_dist(x as f32 + 0.5, z as f32 + 0.5, outposts) < 2.3 { return '.'; }
     let (gx, gz) = (x / 4, z / 4);
     let cell_r = hash2(gx as u32 * 73 + 11 + s, gz as u32 * 97 + 29 + s * 3);

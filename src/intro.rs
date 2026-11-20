@@ -43,7 +43,7 @@ pub fn draw_intro(
         // Live Radio Dispatch Waveform
         if voice_end > t {
             for b in 0..18 {
-                let amp = (((t * 19.0 + b as f32 * 1.7).sin().abs()) * 14.0 + 3.0);
+                let amp = ((t * 19.0 + b as f32 * 1.7).sin().abs()) * 14.0 + 3.0;
                 draw_rectangle(sw - 220.0 + b as f32 * 9.0, 64.0 - amp * 0.5, 5.0, amp, GREEN);
             }
         }

@@ -1,4 +1,3 @@
-use crate::graphics::hash2;
 use crate::world::{has_line_of_sight, terrain_y, tile_at};
 use macroquad::prelude::*;
 

@@ -145,7 +145,7 @@ async fn main() { std::panic::set_hook(Box::new(|info| { let _ = std::fs::write(
     let mut gens = make_gens(&outposts);
     let mut cans = make_cans(&outposts);
     let mut chests = make_chests(&outposts);
-    let mut map_pickup = (vec3(outposts[0].0 as f32 - 1.6, terrain_y(outposts[0].0 as f32 + 0.5, outposts[0].1 as f32 + 0.5) + 1.15, outposts[0].1 as f32 - 0.7), true);
+    let map_pickup = (vec3(outposts[0].0 as f32 - 1.6, terrain_y(outposts[0].0 as f32 + 0.5, outposts[0].1 as f32 + 0.5) + 1.15, outposts[0].1 as f32 - 0.7), true);
     let mut bats: Vec<(Vec3, bool)> = outposts.iter().map(|&(ox, oz)| {
         (vec3(ox as f32 - 2.1, terrain_y(ox as f32 + 0.5, oz as f32 + 0.5) + 1.04, oz as f32 - 1.2), true)
     }).collect();
@@ -173,13 +173,13 @@ async fn main() { std::panic::set_hook(Box::new(|info| { let _ = std::fs::write(
     let mut audio = AudioEngine::new(tower_pos).await;
     let voice = VoiceChat::new();
     let mut net = NetManager::new();
-    let (mut join_ip, mut lobby_code) = (String::new(), String::from("TOWER4"));
+    let (_join_ip, mut lobby_code) = (String::new(), String::from("TOWER4"));
     let saved_name = std::fs::read_to_string(profile_path()).unwrap_or_default().trim().to_string();
     let mut player_name = saved_name.clone();
     let (mut screen, mut active_shift, mut won, mut intro_t, mut intro_vo, mut intro_vo2, mut intro_vo3, mut outro_t, mut outro_vo) = (Screen::Intro, false, false, 0.0f32, false, false, false, 0.0f32, false);
     let (mut vol, mut bright, mut sens, mut quality, mut is_fs) = (0.8f32, 1.0f32, 1.0f32, 2usize, false);
     let (mut pos, mut vel_y, mut yaw, mut pitch) = (vec3(44.5, walkable_y(44.5, 45.5, &outposts), 45.5), 0.0f32, -2.35f32, 0.05f32);
-    let mut camcorder = true; let (mut uv_charges, mut uv_cd, mut uv_flash_t, mut flare_count, mut adren_count, mut adren_t, mut hotbar_slot, mut show_bag, mut drag_t, mut drag_dir) = (0i32, 0.0f32, 0.0f32, 0i32, 0i32, 0.0f32, 0usize, false, 0.0f32, Vec2::X); let mut active_flares: Vec<(Vec3, f32)> = Vec::new(); let mut dropped_items: Vec<(Vec3, u8)> = Vec::new(); let (mut eye_h, mut step_dist, mut bob, mut stam, mut bat, mut exhausted) = (1.65f32, 0.0f32, 0.0f32, 100.0f32, 100.0f32, false);
+    let camcorder = true; let (mut uv_charges, mut uv_cd, mut uv_flash_t, mut flare_count, mut adren_count, mut adren_t, mut hotbar_slot, mut show_bag, mut drag_t, mut drag_dir) = (0i32, 0.0f32, 0.0f32, 0i32, 0i32, 0.0f32, 0usize, false, 0.0f32, Vec2::X); let mut active_flares: Vec<(Vec3, f32)> = Vec::new(); let mut dropped_items: Vec<(Vec3, u8)> = Vec::new(); let (mut eye_h, mut step_dist, mut bob, mut stam, mut bat, mut exhausted) = (1.65f32, 0.0f32, 0.0f32, 100.0f32, 100.0f32, false);
     let (mut on, mut noise, mut wake_t, mut scare_t, mut lost_notice_t, mut radio_prog) = (true, 0.0f32, 3.5f32, 0.0f32, 0.0f32, 0.0f32);
     let mut spare_bats = 0i32; let (mut has_journal, mut show_journal, mut has_map, mut show_map, mut has_radar, mut fuel_cans) = (false, false, true, false, false, 0i32);
     let (mut batteries, mut map_pickup) = (bats, map_pickup.0);
@@ -307,7 +307,7 @@ async fn main() { std::panic::set_hook(Box::new(|info| { let _ = std::fs::write(
                 else { mimic.update(dt, cam, look, on, noise, gens.iter().filter(|g| g.3).count(), has_radar, &active_flares, &outposts) };
             if roared { audio.play_roar(vol); } if mimic.distant_scream { let d_sc = (mimic.pos - cam).length().max(15.0); let sc_v = (1.4 / (1.0 + d_sc * 0.11)).clamp(0.10, 0.35) * vol; audio.play_woman_scream(sc_v); }
             if mimic.distant_echo {
-                let d_ec = (mimic.pos - cam).length().max(8.0);
+                let _d_ec = (mimic.pos - cam).length().max(8.0);
                 let _ = voice.trigger_distant_voice_echo(0.28 * vol);
             }
             if lost { lost_notice_t = 4.0; } if 1.3 > eye_h && !on && 3 > mimic.stealth_evades && 30.0 > (mimic.pos - cam).length() { draw_text(&format!("STEALTH HIDDEN ({}/3 EVASIONS LEFT BEFORE ADAPTATION)", 3 - mimic.stealth_evades), screen_width() * 0.5 - 265.0, screen_height() - 155.0, 19.0, SKYBLUE); } else if 1.3 > eye_h && !on && mimic.stealth_evades >= 3 && 30.0 > (mimic.pos - cam).length() { draw_text("MIMIC ADAPTED TO CROUCH-STEALTH! USE UV CAMERA, FLARES OR ADRENALINE!", screen_width() * 0.5 - 310.0, screen_height() - 155.0, 19.0, RED); }
@@ -602,7 +602,7 @@ async fn main() { std::panic::set_hook(Box::new(|info| { let _ = std::fs::write(
                         }
                     }
                     for &(tx_w, tz_w) in &towers { draw_circle(mx + (tx_w / 380.0) * mw, my + (tz_w / 380.0) * mw, 5.5, SKYBLUE); }
-                    for (idx, (gp, _, fueled, fixed)) in gens.iter().enumerate() { let g_rot = (idx as f32) * 1.1;
+                    for (idx, (gp, _, fueled, fixed)) in gens.iter().enumerate() { let _g_rot = (idx as f32) * 1.1;
                         let (gx, gz) = (mx + (gp.x / 380.0) * mw, my + (gp.z / 380.0) * mw);
                         let col = if *fixed { GREEN } else if *fueled { ORANGE } else { RED };
                         draw_rectangle(gx - 4.5, gz - 4.5, 9.0, 9.0, col); draw_text(&format!("G{}", idx + 1), gx + 7.0, gz + 4.0, 13.0, col);
@@ -611,7 +611,7 @@ async fn main() { std::panic::set_hook(Box::new(|info| { let _ = std::fs::write(
                     draw_circle(px, pz, 5.0, YELLOW); draw_line(px, pz, px + yaw.cos() * 16.0, pz + yaw.sin() * 16.0, 2.5, YELLOW);
                     if has_radar {
                         let t = get_time() as f32;
-                        let sweep_r = ((t * 145.0) % 440.0);
+                        let sweep_r = (t * 145.0) % 440.0;
                         draw_circle_lines(px, pz, sweep_r, 1.5, Color::from_rgba(30, 235, 140, 120));
                         let (rx, rz) = (mx + (mimic.pos.x / 380.0) * mw, my + (mimic.pos.z / 380.0) * mw);
                         let pulse = 5.0 + (t * 5.0).sin().abs() * 3.0;
