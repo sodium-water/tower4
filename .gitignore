@@ -1,0 +1,6 @@
+target/
+Tower4_Release/
+All_OS_Releases/
+*.zip
+crash.log
+relay.txt

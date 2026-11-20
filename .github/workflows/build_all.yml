@@ -1,0 +1,94 @@
+name: Build Native Releases (Windows, macOS Universal, Linux)
+on:
+  push:
+    branches: [ main, master ]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build-windows:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+      - run: cargo build --release
+      - run: |
+          mkdir Tower4-Windows-x64
+          cp target/release/tower4.exe Tower4-Windows-x64/
+          cp -r assets Tower4-Windows-x64/
+          Compress-Archive -Path Tower4-Windows-x64/* -DestinationPath Tower4-Windows-x64.zip
+      - uses: actions/upload-artifact@v4
+        with:
+          name: Tower4-Windows-x64
+          path: Tower4-Windows-x64.zip
+
+  build-macos:
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: aarch64-apple-darwin, x86_64-apple-darwin
+      - run: |
+          cargo build --release --target aarch64-apple-darwin
+          cargo build --release --target x86_64-apple-darwin
+          APP="The Night Shift at Tower 4.app"
+          mkdir -p "$APP/Contents/MacOS" "$APP/Contents/Resources"
+          lipo -create target/aarch64-apple-darwin/release/tower4 target/x86_64-apple-darwin/release/tower4 -output "$APP/Contents/MacOS/tower4"
+          chmod +x "$APP/Contents/MacOS/tower4"
+          cp -r assets "$APP/Contents/Resources/"
+          cat << 'EOF' > "$APP/Contents/Info.plist"
+          <?xml version="1.0" encoding="UTF-8"?>
+          <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://apple.com">
+          <plist version="1.0"><dict>
+            <key>CFBundleName</key><string>The Night Shift at Tower 4</string>
+            <key>CFBundleDisplayName</key><string>The Night Shift at Tower 4</string>
+            <key>CFBundleExecutable</key><string>tower4</string>
+            <key>CFBundleIdentifier</key><string>com.usfs.tower4</string>
+            <key>CFBundlePackageType</key><string>APPL</string>
+            <key>CFBundleVersion</key><string>1.0.0</string>
+            <key>NSHighResolutionCapable</key><true/>
+            <key>NSMicrophoneUsageDescription</key><string>Proximity and Walkie-Talkie Voice Chat in Co-Op</string>
+          </dict></plist>
+          EOF
+          codesign --force --deep --sign - "$APP"
+          ditto -c -k --sequesterRsrc --keepParent "$APP" Tower4-macOS-Universal.zip
+      - uses: actions/upload-artifact@v4
+        with:
+          name: Tower4-macOS-Universal
+          path: Tower4-macOS-Universal.zip
+
+  build-linux:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: sudo apt-get update && sudo apt-get install -y libx11-dev libxi-dev libgl1-mesa-dev libasound2-dev
+      - uses: dtolnay/rust-toolchain@stable
+      - run: cargo build --release
+      - run: |
+          mkdir Tower4-Linux-x64
+          cp target/release/tower4 Tower4-Linux-x64/
+          cp -r assets Tower4-Linux-x64/
+          zip -r Tower4-Linux-x64.zip Tower4-Linux-x64
+      - uses: actions/upload-artifact@v4
+        with:
+          name: Tower4-Linux-x64
+          path: Tower4-Linux-x64.zip
+
+  publish-release:
+    needs: [build-windows, build-macos, build-linux]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          merge-multiple: true
+      - uses: softprops/action-gh-release@v2
+        with:
+          tag_name: latest
+          name: The Night Shift at Tower 4 (Windows, macOS & Linux)
+          files: |
+            Tower4-Windows-x64.zip
+            Tower4-macOS-Universal.zip
+            Tower4-Linux-x64.zip
