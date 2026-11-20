@@ -23,13 +23,18 @@ impl VoiceChat {
 
         #[cfg(target_os = "windows")]
         {
+            #[cfg(target_os = "windows")]
             use winapi::shared::minwindef::{DWORD, UINT};
+            #[cfg(target_os = "windows")]
             use winapi::shared::mmreg::*;
+            #[cfg(target_os = "windows")]
             use winapi::um::mmeapi::*;
+            #[cfg(target_os = "windows")]
             use winapi::um::mmsystem::*;
             const WHDR_DONE: DWORD = 0x00000001;
 
             let (ml, oq, iq_in, ptt, lb, vc_mic, ac_mic) = (mic_level.clone(), out_queue.clone(), in_queue.clone(), ptt_active.clone(), test_loopback.clone(), voice_clips.clone(), active_clip.clone());
+            #[cfg(target_os = "windows")]
             std::thread::spawn(move || unsafe {
                 let fmt = WAVEFORMATEX { wFormatTag: WAVE_FORMAT_PCM, nChannels: 1, nSamplesPerSec: 11025, nAvgBytesPerSec: 11025, nBlockAlign: 1, wBitsPerSample: 8, cbSize: 0 };
                 let mut h_in: HWAVEIN = std::ptr::null_mut();
@@ -73,6 +78,7 @@ impl VoiceChat {
             });
 
             let iq = in_queue.clone();
+            #[cfg(target_os = "windows")]
             std::thread::spawn(move || unsafe {
                 let fmt = WAVEFORMATEX { wFormatTag: WAVE_FORMAT_PCM, nChannels: 1, nSamplesPerSec: 11025, nAvgBytesPerSec: 11025, nBlockAlign: 1, wBitsPerSample: 8, cbSize: 0 };
                 let mut h_out: HWAVEOUT = std::ptr::null_mut();
